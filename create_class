@@ -1,0 +1,81 @@
+#!/usr/bin/python3
+
+import argparse
+import shutil
+import sys
+import fileinput
+import os
+
+def create_file(type):
+    dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
+    if (type == "class"):
+        f_filename = args.class_name[0] + ".php"
+        shutil.copy2(dir_path + "/templates/tmp.php", f_filename)
+        with fileinput.FileInput(f_filename, inplace=True) as file:
+            for line in file:
+                print(line.replace("tmp", args.class_name[0]), end='')
+        if (args.abstract):
+            create_file("abstract")
+        elif (args.parent):
+            create_file("parent")
+        elif (args.interface):
+            create_file("interface")
+        elif (args.parent):
+            create_file("parent")
+    elif (type == "abstract"):
+        f_filename = args.class_name[0] + ".php"
+        filename = args.abstract + ".php"
+        i = 0
+        shutil.copy2(dir_path + "/templates/tmp.php", filename)
+        with fileinput.FileInput(filename, inplace=True) as file:
+            for line in file:
+                print(line.replace("tmp", args.abstract), end='')
+        with fileinput.FileInput(f_filename, inplace=True) as file:
+            for line in file:
+                print(line.replace("class " + args.class_name[0], "class " + args.class_name[0] + " extends " + args.abstract), end='')
+                if (i == 1):
+                    print("include_once(\"" + filename + "\");\n")
+                i+=1
+    elif (type == "interface"):
+        filename = args.interface + ".php"
+        f_filename = args.class_name[0] + ".php"
+        i = 0
+        shutil.copy2(dir_path + "/templates/tmp.php", filename)
+        with fileinput.FileInput(filename, inplace=True) as file:
+            for line in file:
+                print(line.replace("tmp", args.interface), end='')
+        with fileinput.FileInput(f_filename, inplace=True) as file:
+            for line in file:
+                print(line.replace("class " + args.class_name[0], "class " + args.class_name[0] + " implements " + args.interface), end='')
+                if (i == 1):
+                    print("include_once(\"" + filename + "\");\n")
+                i+=1
+    elif (type == "parent"):
+        filename = args.parent + ".php"
+        f_filename = args.class_name[0] + ".php"
+        i = 0
+        shutil.copy2(dir_path + "/templates/tmp.php", filename)
+        with fileinput.FileInput(filename, inplace=True) as file:
+            for line in file:
+                print(line.replace("tmp", args.parent), end='')
+        with fileinput.FileInput(f_filename, inplace=True) as file:
+            for line in file:
+                print(line.replace("class " + args.class_name[0], "class " + args.class_name[0] + " extends " + args.parent), end='')
+                if (i == 1):
+                    print("include_once(\"" + filename + "\");\n")
+                i+=1
+
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(prog='class', description='Create a template for php classes, abstract classes and interfaces', usage='%(prog)s [options]')
+    parser.add_argument("class_name", nargs='+', help='name of the class you want to create')
+    parser.add_argument("-a", "--abstract", help="create an abstract class of the class specified as first argument", dest="abstract")
+    parser.add_argument("-i", "--interface", help="create an interface of the class specified as first argument", dest="interface")
+    parser.add_argument("-p", "--parent", help="create a parent of the class specified as first argument", dest="parent")
+    parser.add_argument("-v", "--visibility", help="set the visibility of your classes [WIP]", dest="visibility")
+    try:
+        args = parser.parse_args()
+        create_file("class")
+    except ValueError as e:
+        print(e.args)
